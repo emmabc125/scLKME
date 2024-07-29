@@ -166,11 +166,13 @@ def kernel_mean_embedding(
         # compute the kernels between X and X_anchor
         if kernel == "rbf":
             X_kme = rbf_kernel(
-                X, X_anchor, gamma=kernel_kwds.get("gamma", 1), n_jobs=n_jobs
+                X, X_anchor, gamma=kernel_kwds.get("gamma", 1),
+                normalized=kernel_kwds.get("normalized", True), n_jobs=n_jobs
             )
         elif kernel == "laplacian":
             X_kme = laplacian_kernel(
-                X=X, Y=X_anchor, gamma=kernel_kwds.get("gamma", 1), n_jobs=n_jobs
+                X=X, Y=X_anchor, gamma=kernel_kwds.get("gamma", 1),
+                normalized=kernel_kwds.get("normalized", True), n_jobs=n_jobs
             )
         else:
             X_kme = pairwise_kernels(
