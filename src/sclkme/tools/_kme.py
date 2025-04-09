@@ -165,20 +165,25 @@ def kernel_mean_embedding(
 
         # compute the kernels between X and X_anchor
         if kernel == "rbf":
-            X_kme = rbf_kernel(
+            X_kme, Den = rbf_kernel(
                 X,
                 X_anchor,
                 gamma=kernel_kwds.get("gamma", 1),
                 normalized=kernel_kwds.get("normalized", True),
-                n_jobs=n_jobs,
+                Den=kernel_kwds.get("Den",None), 
+                n_jobs=n_jobs
             )
+
+            kme_dict["Den"]=Den
+
         elif kernel == "laplacian":
-            X_kme = laplacian_kernel(
+            X_kme, Den = laplacian_kernel(
                 X=X,
                 Y=X_anchor,
                 gamma=kernel_kwds.get("gamma", 1),
                 normalized=kernel_kwds.get("normalized", True),
-                n_jobs=n_jobs,
+                Den=kernel_kwds.get("Den",None),
+                n_jobs=n_jobs
             )
         else:
             X_kme = pairwise_kernels(
@@ -228,7 +233,7 @@ def kernel_mean_embedding(
     return adata if copy else None
 
 
-def rbf_kernel(X, Y=None, gamma=None, normalized=True, n_jobs=None):
+def rbf_kernel(X, Y=None, gamma=None, normalized=True, Den=None, n_jobs=None):
     """Compute the rbf (gaussian) kernel between X and Y
 
         K(X, Y) = exp(-gamma ||x - y||^2 / Den)
@@ -238,16 +243,18 @@ def rbf_kernel(X, Y=None, gamma=None, normalized=True, n_jobs=None):
 
     """
     Dsq = pairwise_distances(X, Y, metric="euclidean", squared=True, n_jobs=n_jobs)
-    Den = np.max(Dsq, axis=0) / 4 if normalized else 1
+
+    if Den is None:
+        Den = np.max(Dsq, axis=0) / 4 if normalized else 1
 
     if gamma is None:
         gamma = 1.0 / X.shape[1]
 
     K = np.exp(-gamma * Dsq / Den)
-    return K
+    return K, Den
 
 
-def laplacian_kernel(X, Y, gamma=None, normalized=True, n_jobs=None):
+def laplacian_kernel(X, Y, gamma=None, normalized=True, Den=None, n_jobs=None):
     """Compute the laplacian kernel between X and Y.
 
         K(X, Y) = exp(-gamma ||x - y||_1 / Den)
@@ -255,10 +262,12 @@ def laplacian_kernel(X, Y, gamma=None, normalized=True, n_jobs=None):
     for each pair of rows x in X and y in Y.
     """
     D_manhattan = pairwise_distances(X, Y, metric="manhattan", n_jobs=n_jobs)
-    Den = np.max(D_manhattan, axis=0) / 4 if normalized else 1
+
+    if Den is None:
+        Den = np.max(D_manhattan, axis=0) / 4 if normalized else 1
 
     if gamma is None:
         gamma = 1.0 / X.shape[1]
 
     K = np.exp(-gamma * D_manhattan / Den)
-    return K
+    return K, Den
