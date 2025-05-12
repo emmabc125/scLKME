@@ -37,7 +37,7 @@ optional = true
 [tool.poetry.group.doc.dependencies]
 sphinx-rtd-theme = "<=1.1"
 sphinx = ">=5.3"
-sphinx-autodoc-annotation = "^1.0.post1"
+sphinx-autodoc-annotation =">0.0.0"
 myst-nb = "^0.17.2"
 nbsphinx = ">=0.8.1"
 sphinx-copybutton = ">=0.5.0"
